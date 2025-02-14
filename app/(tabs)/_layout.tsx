@@ -1,12 +1,12 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
-import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
-
-import { HapticTab } from '@/components/HapticTab';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Tabs } from "expo-router";
+import React from "react";
+import { Platform, StyleSheet, Text, View } from "react-native";
+import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import { HapticTab } from "@/components/HapticTab";
+import TabBarBackground from "@/components/ui/TabBarBackground";
+import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import LottieView from "lottie-react-native";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -14,14 +14,13 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
+            position: "absolute",
           },
           default: {},
         }),
@@ -30,7 +29,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: "Trang chủ",
           tabBarIcon: ({ color, size }) => (
             <FontAwesome name="home" size={size || 28} color={color} />
           ),
@@ -39,7 +38,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Explore',
+          title: "Khám phá",
           tabBarIcon: ({ color, size }) => (
             <FontAwesome name="paper-plane" size={size || 28} color={color} />
           ),
@@ -48,16 +47,34 @@ export default function TabLayout() {
       <Tabs.Screen
         name="news"
         options={{
-          title: 'Tin Tức',
+          title: "AI dự đoán",
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="newspaper" size={size || 28} color={color} />
+            <View>
+              <LottieView
+                source={require("@/assets/images/AI-icon.json")}
+                autoPlay
+                loop
+                style={styles.notifiIcon}
+              />
+              <Text style={styles.text}>AI</Text>
+            </View>
           ),
         }}
       />
       <Tabs.Screen
+        name="post"
+        options={{
+          title: "Bài đăng",
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="article" size={size || 28} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
         name="settings"
         options={{
-          title: 'Cài Đặt',
+          title: "Cài Đặt",
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="settings" size={size || 28} color={color} />
           ),
@@ -66,3 +83,21 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+const styles = StyleSheet.create({
+  notifiIcon: {
+    position: "relative",
+    width: 50,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    bottom: 0,
+  },
+  text: {
+    position: "relative",
+    bottom: 33,
+    left: 18,
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 13,
+  },
+});

@@ -23,7 +23,6 @@ const Categories = ({ onCategoryChanged }: Props) => {
 
   return (
     <View>
-      <Text style={styles.title}>Danh mục</Text>
       <ScrollView
         ref={scrollRef}
         horizontal

@@ -1,109 +1,208 @@
-import { StyleSheet, Image, Platform } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import React, { useState, useEffect } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Header from "@/components/Header";
+import SearchBar from "@/components/SearchBar";
+import Categories from "@/components/Categories";
+import PostList from "@/components/PostList";
+import axios from "axios";
+import { PostDataType } from "@/types";
+import Loading from "@/components/Loading";
+import { Colors } from "@/constants/Colors";
+import API_BASE_URL from "../../config";
+import FilterModal from "@/components/FilterPostList";
+import { Ionicons } from "@expo/vector-icons";
+type Props = {};
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+const Explore = (props: Props) => {
+  const { top: safeTop } = useSafeAreaInsets();
+  const [posts, setPosts] = useState<PostDataType[]>([]);
+  const [originalPosts, setOriginalPosts] = useState<PostDataType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [filtering, setFiltering] = useState(false);
+  const openModal = () => {
+    setIsModalVisible(true);
+  };
 
-export default function TabTwoScreen() {
+  const closeModal = () => {
+    setIsModalVisible(false);
+  };
+
+  const onApplyFilters = (filters: {
+    priceRange: number[];
+    saleStatus: string;
+    legalStatus: string;
+    district: string;
+  }) => {
+    const { priceRange, saleStatus, legalStatus, district } = filters;
+    setPosts(originalPosts);
+    setFiltering(true);
+    console.log(originalPosts);
+
+    setTimeout(() => {
+      const filteredPosts = originalPosts.filter((post) => {
+        const matchesPrice =
+          Number(post.price) >= priceRange[0] &&
+          Number(post.price) <= priceRange[1];
+        const matchesSaleStatus =
+          !saleStatus || post.sale_status === saleStatus;
+        const matchesLegalStatus =
+          !legalStatus || post.legal_status === legalStatus;
+        const matchesDistrict =
+          district === "Tất cả" || post.district === district;
+
+        return (
+          matchesPrice &&
+          matchesSaleStatus &&
+          matchesLegalStatus &&
+          matchesDistrict
+        );
+      });
+      console.log("sau khi lọc",filteredPosts);
+      setPosts(filteredPosts);
+      setIsModalVisible(false);
+      setFiltering(false);
+    }, 1000);
+  };
+
+  const fetchPopularPosts = async (category: string = "") => {
+    setLoading(true);
+    try {
+      let categoryString = "";
+      if (category.length !== 0) {
+        categoryString = `?category=${category}`;
+      }
+      const response = await axios.get(
+        `${API_BASE_URL}/api/posts/${categoryString}`
+      );
+      if (response && response.data) {
+        const posts = response.data;
+        const updatedPosts = await Promise.all(
+          posts.map(async (post: any) => {
+            try {
+              const userId = post.user.user_id;
+              const avatarResponse = await axios.get(
+                `${API_BASE_URL}/auth/users-avatar/${userId}`
+              );
+
+              if (avatarResponse && avatarResponse.data) {
+                post.user.avatar_url = avatarResponse.data.avatar_url;
+              }
+            } catch (error) {
+              console.error(
+                `Error fetching avatar for user ${post.user.user_id}:`,
+                error
+              );
+            }
+
+            return post;
+          })
+        );
+
+        setPosts(updatedPosts);
+        setOriginalPosts(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching popular posts:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPosts = async (searchText: string) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/search/?text=${searchText}`
+      );
+      if (response && response.data) {
+        setPosts(response.data);
+        
+      }
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPopularPosts();
+  }, []);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user's current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <View style={[styles.container, { paddingTop: safeTop }]}>
+      <Header />
+      <Text style={styles.subtitle}>Danh sách bài đăng</Text>
+      <SearchBar onSearch={fetchPosts} />
+      <Categories onCategoryChanged={fetchPopularPosts} />
+      <ScrollView>
+        {loading || filtering ? (
+          <Loading size={"large"} />
+        ) : posts.length === 0 ? (
+          <Text style={styles.emptyText}>Không có bài đăng nào</Text>
+        ) : (
+          <PostList postList={posts} />
+        )}
+      </ScrollView>
+      {/* Nút FAB */}
+      <TouchableOpacity style={styles.fab} onPress={openModal}>
+        <Ionicons name="search" size={20} color="white" />
+      </TouchableOpacity>
+      {/* Modal */}
+      <FilterModal
+        isVisible={isModalVisible}
+        onClose={closeModal}
+        onApplyFilters={onApplyFilters}
+      />
+    </View>
   );
-}
+};
+
+export default Explore;
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
+    position: "relative",
+    marginTop: 10,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  subtitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: Colors.black,
+    marginBottom: 10,
+    marginLeft: 20,
+  },
+  fab: {
+    position: "absolute",
+    bottom: 30,
+    right: 20,
+    backgroundColor: "#007bff",
+    width: 50,
+    height: 50,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,
+    zIndex: 10,
+  },
+  fabText: {
+    color: "white",
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  emptyText: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+    color: "gray",
   },
 });

@@ -5,11 +5,11 @@ export default function AuthLayout() {
     <Stack>
       <Stack.Screen 
         name="login" 
-        options={{ headerTitle: "Đăng nhập" }} 
+        options={{ headerShown: false }} 
       />
       <Stack.Screen 
         name="register" 
-        options={{ headerTitle: "Đăng ký" }} 
+        options={{ headerShown: false }} 
       />
     </Stack>
   );

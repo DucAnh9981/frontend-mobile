@@ -1,14 +1,14 @@
 const newsCategoryList = [
   {
     id: 1,
-    title: 'Tất cả',
-    slug: 'popular',
+    title: 'Mới nhất',
+    slug: '',
     selected: false,
   },
   {
     id: 2,
-    title: 'Dành cho bạn',
-    slug: '',
+    title: 'Phổ biến',
+    slug: 'popular',
     selected: false,
   },
   {

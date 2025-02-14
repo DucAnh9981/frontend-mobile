@@ -6,7 +6,7 @@ const RegistrationSuccess = () => {
   const router = useRouter();
 
   const goToLogin = () => {
-    router.replace("/auth/login"); 
+    router.push("/auth/login"); 
   };
 
   return (

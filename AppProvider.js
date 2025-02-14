@@ -18,11 +18,13 @@ export default function AppProvider({
   initialRole,
   initialId,
   initialName,
+  initialFullname,
 }) {
   const [id, setId] = useState(null);
   const [role, setRole] = useState(null);
   const [name, setName] = useState(null);
   const [sessionToken, setSessionToken] = useState(null);
+  const [fullname, setFullname] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -30,11 +32,13 @@ export default function AppProvider({
       const storedRole = await AsyncStorage.getItem("role");
       const storedName = await AsyncStorage.getItem("name");
       const storedToken = await AsyncStorage.getItem("accessToken");
+      const storedFullname = await AsyncStorage.getItem("fullname");
 
       setId(initialId || storedId);
       setRole(initialRole || storedRole);
       setName(initialName || storedName);
       setSessionToken(initialSessionToken || storedToken || "");
+      setFullname(initialFullname || storedFullname);
     })();
   }, []);
 
@@ -45,14 +49,16 @@ export default function AppProvider({
         await AsyncStorage.setItem("accessToken", sessionToken);
         await AsyncStorage.setItem("id", id);
         await AsyncStorage.setItem("name", name);
+        await AsyncStorage.setItem("fullname", fullname);
       } else {
         await AsyncStorage.removeItem("accessToken");
         await AsyncStorage.removeItem("role");
         await AsyncStorage.removeItem("id");
         await AsyncStorage.removeItem("name");
+        await AsyncStorage.removeItem("fullname");
       }
     })();
-  }, [sessionToken, role, id, name]);
+  }, [sessionToken, role, id, name, fullname]);
 
   return (
     <AppContext.Provider
@@ -65,6 +71,8 @@ export default function AppProvider({
         setId,
         name,
         setName,
+        fullname,
+        setFullname,
       }}
     >
       {children}
@@ -78,4 +86,5 @@ AppProvider.propTypes = {
   initialRole: PropTypes.string,
   initialId: PropTypes.string,
   initialName: PropTypes.string,
+  initialFullname: PropTypes.string,
 };
